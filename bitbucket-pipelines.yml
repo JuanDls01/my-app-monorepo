@@ -1,0 +1,78 @@
+image: node:lts-alpine
+
+definitions:
+  # Cached directories
+  caches:
+    node: ~/.npm
+    turbo: .turbo
+
+  # Define pipeline steps for reusability
+  steps:
+    - step: &checkCodeFormatting
+        name: '🎨 Checking code formating'
+        script:
+          - npm run format:check
+
+    - step: &runLinting
+        name: '🧹 Running Lint Scanner'
+        caches:
+          - node
+        script:
+          - npm run lint
+
+    # TODO: Configure unit test coverage step
+    # - step: &unitTestingCoverage
+
+    - step: &sonarqubeScan
+        name: '🔎 Running SonarQube scanner'
+        size: 2x # Increase container size
+        script:
+          - pipe: sonarsource/sonarqube-scan:2.0.1
+            variables:
+              SONAR_HOST_URL: ${SONAR_HOST_URL}
+              SONAR_TOKEN: ${SONAR_TOKEN}
+
+    - step: &installDependencies
+        name: '📦 Installing Dependencies'
+        caches:
+          - node
+        script:
+          - npm install
+
+    - step: &deployDevelopment
+        deployment: 'Development'
+        name: '🚀 Deploying infrastructure'
+        caches:
+          - node
+        script:
+          - *dependenciesInstallation
+          - npx sst secrets set ACCESS_KEY_ID ${AWS_ACCESS_KEY_ID} --stage development
+          - npx sst secrets set SECRET_ACCESS_KEY_ID ${AWS_SECRET_ACCESS_KEY} --stage development
+          - npx sst secrets set AUTHENTICATION_SECRET ${AUTHENTICATION_SECRET} --stage development
+          - npx sst deploy --stage development
+
+pipelines:
+  branches:
+    development:
+      - step: *installDependencies
+      - parallel:
+          - step: *generateBuild
+          - step: *unitTestingCoverage
+      - parallel:
+          - step: *sonarqubeAnalysis
+          - step: *deployDevelopment
+  
+  pull-requests:
+    '**':
+      - step: *installDependencies
+      - parallel:
+          - step: *checkCodeFormating
+          - step: *generateBuild
+          - step: *unitTestingCoverage
+
+  # Pipelines for manually deployments
+  custom:
+    deployDevelopment:
+      - step: *deployDevelopment
+    deployStaging:
+      - step: *deployStaging

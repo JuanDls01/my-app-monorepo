@@ -1,0 +1,12 @@
+{
+  "extends": "@my-app/typescript-config/base.json",
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "tsup.config.ts",
+    "sst.config.ts",
+    "sst-env.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}

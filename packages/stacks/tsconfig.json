@@ -1,5 +1,5 @@
 {
-  "extends": "@my-app/typescript-config/base.json",
+  "extends": "@my-app/typescript-config/base",
   "include": [
     "next-env.d.ts",
     "**/*.ts",

@@ -2,6 +2,11 @@
   "name": "@my-app/stacks",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "deploy:dev": "sst deploy --stage development",
+    "deploy:prod": "sst deploy --stage production",
+    "remove:dev": "sst remove --stage development"
+  },
   "dependencies": {
     "sst": "^3.14.14"
   },

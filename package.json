@@ -18,6 +18,7 @@
     "turbo": "^2.5.3"
   },
   "scripts": {
+    "dev": "turbo run start:dev",
     "prepare": "husky install",
     "lint": "turbo run lint",
     "format:check": "prettier --check",

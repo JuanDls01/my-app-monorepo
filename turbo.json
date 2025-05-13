@@ -4,6 +4,9 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "start:dev": {
+      "cache": false
+    },
     "check-types": {
       "dependsOn": ["^check-types"]
     },

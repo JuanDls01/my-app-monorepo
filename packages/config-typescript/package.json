@@ -4,5 +4,10 @@
   "private": true,
   "publishConfig": {
     "access": "public"
+  },
+  "exports": {
+    "./base": "./base.json",
+    "./nest": "./nest.json",
+    "./react-native": "./react-native.json"
   }
 }

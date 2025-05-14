@@ -39,16 +39,25 @@ definitions:
         script:
           - npm install
 
+    - step: &buildAndPushDockerImage
+        name: '📦 Build and push Docker image'
+        services:
+          - docker
+        script:
+          - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          # BITBUCKET_BUILD_NUMBER could be IMAGE_TAG as well
+          - docker build ./apps/api -t ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_URL}:${BITBUCKET_REPO_SLUG}-${BITBUCKET_BUILD_NUMBER} 
+          # The url could be changed
+          - docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_URL}:${BITBUCKET_REPO_SLUG}-${BITBUCKET_BUILD_NUMBER}
+
     - step: &deployDevelopment
         deployment: 'Development'
         name: '🚀 Deploying infrastructure'
         caches:
           - node
         script:
-          - *dependenciesInstallation
           - npx sst secrets set ACCESS_KEY_ID ${AWS_ACCESS_KEY_ID} --stage development
           - npx sst secrets set SECRET_ACCESS_KEY_ID ${AWS_SECRET_ACCESS_KEY} --stage development
-          - npx sst secrets set AUTHENTICATION_SECRET ${AUTHENTICATION_SECRET} --stage development
           - npx sst deploy --stage development
 
 pipelines:
@@ -58,6 +67,7 @@ pipelines:
       - parallel:
           - step: *generateBuild
           - step: *unitTestingCoverage
+      - step: *buildAndPushDockerImage
       - parallel:
           - step: *sonarqubeAnalysis
           - step: *deployDevelopment
@@ -70,7 +80,7 @@ pipelines:
           - step: *generateBuild
           - step: *unitTestingCoverage
 
-  # Pipelines for manually deployments
+  # Pipelines for manually deployments (Doesn't push a new image)
   custom:
     deployDevelopment:
       - step: *deployDevelopment

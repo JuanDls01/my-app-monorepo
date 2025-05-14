@@ -31,6 +31,13 @@ definitions:
             variables:
               SONAR_HOST_URL: ${SONAR_HOST_URL}
               SONAR_TOKEN: ${SONAR_TOKEN}
+    
+    - step: &runMigrations
+        name: '📁 Running Migrations'
+        cache:
+          - node
+        script:
+          - npm run db:migrate:deploy
 
     - step: &installDependencies
         name: '📦 Installing Dependencies'
@@ -64,6 +71,7 @@ pipelines:
   branches:
     development:
       - step: *installDependencies
+      - step: *runMigrations
       - parallel:
           - step: *generateBuild
           - step: *unitTestingCoverage
